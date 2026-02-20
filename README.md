@@ -1,4 +1,5 @@
 # Clinical Evidence Navigator 🩺📚
+![Status](https://img.shields.io/badge/status-in%20progress-yellow)
 
 Clinical Evidence Navigator is an evidence grounded Retrieval Augmented Generation (RAG) system for querying public medical guidelines and returning citation backed answers.
 
