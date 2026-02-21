@@ -216,4 +216,4 @@ data/processed/
 chroma/
 
 # Raw large files (optional)
-data/raw/*.pdf
+data/raw/
