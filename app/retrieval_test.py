@@ -28,6 +28,6 @@ def test_retrieval(query: str, k: int = 4):
     
 
 if __name__ == "__main__":
-    query_test = "Whate are the diagnostic criteria for type 2 diabetes"
+    query_test = "What are the diagnostic criteria for type 2 diabetes"
     query_test = "What are the recommended HbA1c targets for nonpregnant adults?"
     test_retrieval(query_test)

@@ -22,28 +22,41 @@ uploaded_file = st.file_uploader(
     "Upload a clinical PDF document",
     type=["pdf"])
 
-question = st.text_input(
+user_question = st.text_input(
     "Enter you question"
 )
-
 
 if st.button("Ask"):
     if uploaded_file is None:
         st.error("Please, upload a PDF document first!")
-    elif not question:
+    elif not user_question:
         st.error("Please enter a question!")
     elif uploaded_file.type != "application/pdf":
         st.error("Invalid file type. Please, upload a PDF document!")
     else:
+
         with st.spinner("Processing document..."):
+            
             with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
                 tmp.write(uploaded_file.read())
                 temporary_document_path = tmp.name
 
             vectorstore = create_vectorstore_from_pdf(temporary_document_path)
+            st.success("Vector store created sucessfully!")
 
-            st.success(
-                "Vector store created sucessfully!")
+            retriever = vectorstore.as_retriever(search_kwargs={"k": 4})
+
+            retrieved_docs = retriever.invoke(user_question)
+
+        st.success("Retrival completed!")    
+        st.subheader("Top Relevant Chunks")
+
+        for i, document in enumerate(retrieved_docs):
+            page = document.metadata.get("page", "N/A")
+            st.markdown(f"- Chunk {i+1} (Page {page})")
+            st.write(document.page_content)
+            st.markdown("---")
+
 
 
 st.markdown("---")
