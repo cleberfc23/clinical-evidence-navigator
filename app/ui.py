@@ -1,8 +1,12 @@
 import streamlit as st
+import tempfile
+# from app.ingestion import create_vectorstore_from_pdf
+# from app.config import EMBEDDING_MODEL
+from ingestion import create_vectorstore_from_pdf
+
 
 st.set_page_config(
     page_title="Clinical Evidence Navigator",
-    page_icon="🩺",
     layout="wide"
 )
 
@@ -10,9 +14,8 @@ st.title("Clinical Evidence Navigator")
 st.markdown("Answers to clinical questions based on scientific evidence, driven by Retrieval Augmented Generation (RAG).")
 st.warning("""
 ⚠️ **Warning:**
-This tool is intended for research and engineering purposes only.
+This tool is intended for engineering and research purposes only.
 It does not provide medical advice and should not replace clinical judgment.""")
-
 
 
 uploaded_file = st.file_uploader(
@@ -29,11 +32,18 @@ if st.button("Ask"):
         st.error("Please, upload a PDF document first!")
     elif not question:
         st.error("Please enter a question!")
-    elif uploaded_file.type !="application/pdf":
+    elif uploaded_file.type != "application/pdf":
         st.error("Invalid file type. Please, upload a PDF document!")
     else:
-        st.sucess(
-            "MVP structure working.\n Next step: connect to retrieval pipeline")
+        with st.spinner("Processing document..."):
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
+                tmp.write(uploaded_file.read())
+                temporary_document_path = tmp.name
+
+            vectorstore = create_vectorstore_from_pdf(temporary_document_path)
+
+            st.success(
+                "Vector store created sucessfully!")
 
 
 st.markdown("---")

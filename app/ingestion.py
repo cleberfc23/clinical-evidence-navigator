@@ -1,9 +1,9 @@
 from langchain_community.document_loaders import PyPDFLoader
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.vectorstores import Chroma
-from langchain.embeddings import HuggingFaceEmbeddings
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_community.vectorstores import Chroma
 
-from app.config import EMBEDDING_MODEL
+# from app.config import EMBEDDING_MODEL
 
 
 def create_vectorstore_from_pdf(pdf_path):
@@ -18,7 +18,8 @@ def create_vectorstore_from_pdf(pdf_path):
     chunks = splitter.split_documents(document_pdf)
 
     embeddings = HuggingFaceEmbeddings(
-        model_name=EMBEDDING_MODEL
+        model_name="BAAI/bge-small-en-v1.5"
+        # EMBEDDING_MODEL
     )
 
     vectorstore = Chroma.from_documents(
