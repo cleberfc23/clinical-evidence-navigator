@@ -63,6 +63,68 @@ PS: The other files are for testing purposes.
 
 ---
 
+## ⚙️ Installation
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/your-username/clinical-evidence-navigator.git
+cd clinical-evidence-navigator
+```
+
+### 2. Create and activate a virtual environment
+
+```bash
+python -m venv venv
+```
+
+Mac/Linux:
+
+```bash
+source venv/bin/activate
+```
+
+Windows:
+
+```bash
+venv\Scripts\activate
+```
+
+### 3. Install dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+### 4. Configure environment variables
+
+Copy the example environment file:
+
+```bash
+cp .env.example .env
+```
+
+Then open `.env` and add your Gemini API key:
+
+```env
+# Gemini API Configuration
+GEMINI_API_KEY=your_api_key_here
+MODEL_GEMINI_FLASH=gemini-2.5-flash
+
+# Embedding Model
+EMBEDDING_MODEL=BAAI/bge-small-en-v1.5
+```
+
+### 5. Run the application
+
+```bash
+streamlit run app/ui.py
+```
+
+The app will open in your browser.
+
+---
+
 
 ## 🚧 Project Status
 
