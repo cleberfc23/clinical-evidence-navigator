@@ -54,6 +54,7 @@ The model is instructed to respond simply, strictly from retrieved sources.
 ## 🏗 Architecture Overview
 
 app/
+
 ├── ingestion.py     
 ├── generator.py     
 ├── ui.py            
