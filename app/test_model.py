@@ -1,19 +1,18 @@
-import os
 from dotenv import load_dotenv
 from google import genai
+from config import GEMINI_API_KEY, MODEL_GEMINI_FLASH
 
 load_dotenv()
 
-gemini_api_key = os.getenv("GEMINI_API_KEY")
 
-if not gemini_api_key:
+if not GEMINI_API_KEY:
     raise ValueError("GEMINI_API_KEY not found")
 
-client = genai.Client(api_key=gemini_api_key)
+client = genai.Client(api_key=GEMINI_API_KEY)
 
 query = "Explain briefly what is Diabetes"
 response = client.models.generate_content(
-    model=os.getenv("MODEL_GEMINI_FLASH"),
+    model=MODEL_GEMINI_FLASH,
     contents=query
 )
 print(f"\nQuestion: {query}")

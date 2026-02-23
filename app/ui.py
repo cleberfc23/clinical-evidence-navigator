@@ -1,15 +1,18 @@
 import streamlit as st
 import tempfile
-# from app.ingestion import create_vectorstore_from_pdf
-# from app.config import EMBEDDING_MODEL
+from config import EMBEDDING_MODEL, GEMINI_API_KEY, MODEL_GEMINI_FLASH
 from ingestion import create_vectorstore_from_pdf
+from dotenv import load_dotenv
+from google import genai
+from generator import build_context, build_prompt
+import hashlib
 
+load_dotenv()
 
 st.set_page_config(
     page_title="Clinical Evidence Navigator",
     layout="wide"
 )
-
 st.title("Clinical Evidence Navigator")
 st.markdown("Answers to clinical questions based on scientific evidence, driven by Retrieval Augmented Generation (RAG).")
 st.warning("""
@@ -26,37 +29,69 @@ user_question = st.text_input(
     "Enter you question"
 )
 
+if not GEMINI_API_KEY:
+    raise ValueError("GEMINI_API_KEY not found")
+
+client = genai.Client(api_key=GEMINI_API_KEY)
+
+results = st.container()
 if st.button("Ask"):
+    results.empty()
     if uploaded_file is None:
         st.error("Please, upload a PDF document first!")
+        st.stop()
     elif not user_question:
         st.error("Please enter a question!")
+        st.stop()
     elif uploaded_file.type != "application/pdf":
         st.error("Invalid file type. Please, upload a PDF document!")
+        st.stop()
     else:
-
         with st.spinner("Processing document..."):
-            
+
             with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
                 tmp.write(uploaded_file.read())
                 temporary_document_path = tmp.name
 
             vectorstore = create_vectorstore_from_pdf(temporary_document_path)
             st.success("Vector store created sucessfully!")
-
             retriever = vectorstore.as_retriever(search_kwargs={"k": 4})
-
             retrieved_docs = retriever.invoke(user_question)
 
-        st.success("Retrival completed!")    
-        st.subheader("Top Relevant Chunks")
+        with st.expander("Show retrieved chunks (debug)"):
+            for i, document in enumerate(retrieved_docs):
+                page = document.metadata.get("page", "N/A")
+                st.markdown(f"- Chunk {i+1} (Page {page})")
+                st.write(document.page_content)
+                st.markdown("---")
 
-        for i, document in enumerate(retrieved_docs):
-            page = document.metadata.get("page", "N/A")
-            st.markdown(f"- Chunk {i+1} (Page {page})")
-            st.write(document.page_content)
-            st.markdown("---")
+        context, cited_pages = build_context(retrieved_docs)
+        prompt = build_prompt(user_question, context)
 
+        with st.spinner("Generating answer..."):
+            response = client.models.generate_content(
+                model=MODEL_GEMINI_FLASH,
+                contents=prompt
+            )
+
+            answer_text = getattr(response, "text", None) or ""
+
+        st.subheader("Answer")
+        if answer_text.strip():
+            st.markdown(answer_text)
+        else:
+            st.warning("No answer has returned")
+
+        st.subheader("Citations")
+        if cited_pages:
+            for p in cited_pages:
+                # PyPDFLoader commonly uses 0-indexed pages; display 1-indexed to users.
+                try:
+                    st.markdown(f"- p. {int(p) + 1}")
+                except Exception:
+                    st.markdown(f"- p. {p}")
+        else:
+            st.markdown("- No page citations available.")
 
 
 st.markdown("---")

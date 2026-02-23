@@ -5,19 +5,21 @@ Clinical Evidence Navigator is an evidence grounded Retrieval Augmented Generati
 
 It is built with **LangChain** and **LangGraph** to orchestrate retrieval and response generation workflows, with a strong focus on transparency and hallucination mitigation.
 
-> ⚠️ Disclaimer: This project is for research purposes only. It does not provide medical advice, diagnosis, or treatment. Always consult a qualified healthcare professional.
+> ⚠️ Disclaimer: This project is for engineering and research purposes only. It does not provide medical advice, diagnosis, or treatment. Always consult a qualified healthcare professional.
 
 ---
 
 ## 🎯 Project Goal
 
-Medical guidelines are often long, complex, and difficult to navigate.  
-This project aims to build a lightweight and transparent system that:
+Clinical guidelines and medical documents are often lengthy, complex, and difficult to navigate.
+This project aims to build a lightweight, accessible, and transparent system that:
 
 - Answers questions **strictly based on retrieved evidence**
-- Provides **explicit citations** for every claim
-- Detects when a question is **out of scope** of the available documents
-- Encourages **responsible AI usage** in healthcare contexts
+- Provides **explicit page-level citations** for each statement
+- Restricts LLM responses through controlled context injection
+- Reduces hallucinations through prioritized retrieval generation
+- Encourages responsible use of AI in healthcare contexts
+- Responses are in plain language and do not exceed 300 characters.
 
 ---
 
@@ -27,18 +29,59 @@ This project aims to build a lightweight and transparent system that:
 - **LangChain** (RAG components, prompts, retrieval)
 - **LangGraph** (agent style orchestration and control flow)
 - **Chroma** (local vector database)
-- **Streamlit** (demo interface — upcoming)
+- **Streamlit** (interactive demo interface)
+- **HuggingFace Embeddings** - BAAI/bge-small-en-v1.5
+- **Google Gemini 2.5 Flash API**
 
 ---
+
+## 🧠 How It Works
+
+The system follows a modular RAG pipeline:
+
+1. Upload a clinical PDF document  
+2. Split document into semantic chunks  
+3. Generate embeddings for each chunk  
+4. Store embeddings in a Chroma vector index  
+5. Retrieve top-k relevant chunks  
+6. Inject retrieved context into a constrained prompt  
+7. Generate a grounded answer with page-level citations  
+
+The model is instructed to respond simply, strictly from retrieved sources.
+
+---
+
+## 🏗 Architecture Overview
+
+app/
+├── ingestion.py     
+├── generator.py     
+├── ui.py            
+
+PS: The other files are for testing purposes.
+
+---
+
 
 ## 🚧 Project Status
 
-This repository is under active development.
+This repository is in MVP stage and under active development.
 
 Planned next steps:
-- Document ingestion pipeline (PDF/MD/HTML)
-- Vector indexing and retrieval setup
-- Streamlit demo app
-- Basic evaluation (citation coverage / grounding checks)
+- Vector index caching to avoid rebuilding per query
+- Persistent vector database support
+- Multi-document ingestion
+- URL-based document ingestion
+- Automated grounding evaluation metrics
+- Backend API version (FastAPI)
+- Improved chunking for multi-column PDFs
+- Examples of questions
 
 ---
+
+## 👤 Author
+
+Cleber F. Carvalho  
+Machine Learning Engineer ∙ Applied AI & Data Science ∙ LLM Systems
+
+--
