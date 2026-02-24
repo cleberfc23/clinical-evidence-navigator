@@ -5,11 +5,10 @@ from langchain_core.documents import Document
 def build_context(docs: List[Document], max_chars: int = 12000) -> Tuple[str, List[int]]:
     """
     """
-
     parts = []
     cited_pages = []
     total = 0
-
+    
     for d in docs:
         page = d.metadata.get("page", None)
         if page is not None:
@@ -39,7 +38,7 @@ def build_prompt(question: str, context: str) -> str:
     Prompt engineered for grounded QA + citations by page
     """
     return f"""
-You are a clinical evidence assistant .Answer strictly using the provided SOURCES. 
+You are a clinical evidence assistant. Answer strictly using the provided SOURCES. 
 If the SOURCES do not contain enough information, say you don't know.
 
 Rules:

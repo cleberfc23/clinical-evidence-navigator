@@ -6,6 +6,8 @@ from dotenv import load_dotenv
 from google import genai
 from generator import build_context, build_prompt
 import hashlib
+MAX_FILE_SIZE_MB = 20
+
 
 load_dotenv()
 
@@ -40,8 +42,14 @@ if st.button("Ask"):
     if uploaded_file is None:
         st.error("Please, upload a PDF document first!")
         st.stop()
+    elif uploaded_file.size > MAX_FILE_SIZE_MB*1024*1024:
+        st.error("Please upload a PDF smaller than 20MB")
+        st.stop()
     elif not user_question:
         st.error("Please enter a question!")
+        st.stop()
+    elif len(user_question.strip()) < 20:
+        st.error("Please enter a more specific question!")
         st.stop()
     elif uploaded_file.type != "application/pdf":
         st.error("Invalid file type. Please, upload a PDF document!")
@@ -53,10 +61,21 @@ if st.button("Ask"):
                 tmp.write(uploaded_file.read())
                 temporary_document_path = tmp.name
 
-            vectorstore = create_vectorstore_from_pdf(temporary_document_path)
-            st.success("Vector store created sucessfully!")
+            try:
+                vectorstore = create_vectorstore_from_pdf(
+                    temporary_document_path)
+                st.success("Vector store created sucessfully!")
+            except Exception as e:
+                st.error("Error processing the uploaded PDF.")
+                st.write(str(e))
+                st.stop()
+
             retriever = vectorstore.as_retriever(search_kwargs={"k": 4})
             retrieved_docs = retriever.invoke(user_question)
+            if not retrieved_docs:
+                st.error(
+                    "No relevant content found in the document for this question.")
+                st.stop()
 
         with st.expander("Show retrieved chunks (debug)"):
             for i, document in enumerate(retrieved_docs):
@@ -69,12 +88,17 @@ if st.button("Ask"):
         prompt = build_prompt(user_question, context)
 
         with st.spinner("Generating answer..."):
-            response = client.models.generate_content(
-                model=MODEL_GEMINI_FLASH,
-                contents=prompt
-            )
+            try:
+                response = client.models.generate_content(
+                    model=MODEL_GEMINI_FLASH,
+                    contents=prompt
+                )
+                answer_text = getattr(response, "text", None) or ""
 
-            answer_text = getattr(response, "text", None) or ""
+            except Exception as e:
+                st.error("Error while generating response from Gemini API.")
+                st.write(str(e))
+                st.stop()
 
         st.subheader("Answer")
         if answer_text.strip():
@@ -85,7 +109,6 @@ if st.button("Ask"):
         st.subheader("Citations")
         if cited_pages:
             for p in cited_pages:
-                # PyPDFLoader commonly uses 0-indexed pages; display 1-indexed to users.
                 try:
                     st.markdown(f"- p. {int(p) + 1}")
                 except Exception:
