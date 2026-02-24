@@ -53,13 +53,16 @@ The model is instructed to respond simply, strictly from retrieved sources.
 
 ## 🏗 Architecture Overview
 
-app/
-
-    ├── ingestion.py     
-    ├── generator.py     
-    ├── ui.py            
-
-PS: The other files are for testing purposes.
+```markdown
+```bash
+clinical-evidence-navigator/
+├── app/
+│   ├── ingestion.py
+│   ├── generator.py
+│   └── ui.py
+├── .env.example
+├── requirements.txt
+└── README.md
 
 ---
 
