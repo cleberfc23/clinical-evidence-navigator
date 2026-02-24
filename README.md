@@ -56,6 +56,7 @@ The model is instructed to respond simply, strictly from retrieved sources.
 ```bash
 clinical-evidence-navigator/
 ├── app/
+│   ├── config.py
 │   ├── ingestion.py
 │   ├── generator.py
 │   └── ui.py
