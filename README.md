@@ -5,7 +5,7 @@ Clinical Evidence Navigator is an evidence grounded Retrieval Augmented Generati
 
 It is built with **LangChain** and **LangGraph** to orchestrate retrieval and response generation workflows, with a strong focus on transparency and hallucination mitigation.
 
-> ⚠️ Disclaimer: This project is for engineering and research purposes only. It does not provide medical advice, diagnosis, or treatment. Always consult a qualified healthcare professional.
+> ⚠️ This project is for engineering and research purposes only. It does not provide medical advice, diagnosis, or treatment. Always consult a qualified healthcare professional.
 
 ---
 
