@@ -53,7 +53,6 @@ The model is instructed to respond simply, strictly from retrieved sources.
 
 ## 🏗 Architecture Overview
 
-```markdown
 ```bash
 clinical-evidence-navigator/
 ├── app/
@@ -63,6 +62,7 @@ clinical-evidence-navigator/
 ├── .env.example
 ├── requirements.txt
 └── README.md
+```
 
 ---
 
