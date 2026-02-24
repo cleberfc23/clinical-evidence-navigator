@@ -35,7 +35,7 @@ This project aims to build a lightweight, accessible, and transparent system tha
 
 ---
 
-## 🧠 How It Works
+## 🧠 How It Works?
 
 The system follows a modular RAG pipeline:
 
