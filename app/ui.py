@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 from google import genai
 from generator import build_context, build_prompt
 MAX_FILE_SIZE_MB = 20
-MAX_REQUESTS = 0
+MAX_REQUESTS = 3
 if "request_count" not in st.session_state:
     st.session_state.request_count = 0
 
