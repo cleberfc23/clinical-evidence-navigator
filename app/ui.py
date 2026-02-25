@@ -1,6 +1,6 @@
 import streamlit as st
 import tempfile
-from config import GEMINI_API_KEY, MODEL_GEMINI_FLASH
+from config import GEMINI_API_KEY, MODEL_GEMINI_FLASH, EMBEDDING_MODEL
 from ingestion import create_vectorstore_from_pdf
 from dotenv import load_dotenv
 from google import genai
@@ -8,7 +8,13 @@ from generator import build_context, build_prompt
 MAX_FILE_SIZE_MB = 20
 
 
-load_dotenv()
+def get_secrets():
+    load_dotenv()
+    model_name = MODEL_GEMINI_FLASH or st.secrets.get("MODEL_GEMINI_FLASH")
+    key = GEMINI_API_KEY or st.secrets.get("GEMINI_API_KEY")
+    embedding = EMBEDDING_MODEL or st.secrets.get("EMBEDDING_MODEL")
+    return model_name, key, embedding
+
 
 st.set_page_config(
     page_title="Clinical Evidence Navigator",
@@ -16,8 +22,6 @@ st.set_page_config(
 )
 st.title("Clinical Evidence Navigator")
 st.markdown("Answers to clinical questions based on scientific evidence, driven by Retrieval Augmented Generation (RAG).")
-
-
 
 uploaded_file = st.file_uploader(
     "Upload a clinical PDF document",
@@ -27,13 +31,13 @@ user_question = st.text_input(
     "Enter your question"
 )
 
-GEMINI_API_KEY = st.secrets.get("GEMINI_API_KEY") 
-MODEL_GEMINI_FLASH = st.secrets.get("MODEL_GEMINI_FLASH")
-if not GEMINI_API_KEY:
+model_gemini_flash, gemini_api_key, embedding_model = get_secrets()
+
+if not gemini_api_key:
     st.error("Missing GEMINI_API_KEY. Please seit it in your .env file")
     st.stop()
 
-client = genai.Client(api_key=GEMINI_API_KEY)
+client = genai.Client(api_key=gemini_api_key)
 
 results = st.container()
 if st.button("Ask"):
@@ -62,7 +66,7 @@ if st.button("Ask"):
 
                 try:
                     vectorstore = create_vectorstore_from_pdf(
-                        temporary_document_path)
+                        temporary_document_path, embedding_model)
                     st.success("Vector store created sucessfully!")
                 except Exception as e:
                     st.error("Error processing the uploaded PDF.")
@@ -89,7 +93,7 @@ if st.button("Ask"):
             with st.spinner("Generating answer..."):
                 try:
                     response = client.models.generate_content(
-                        model=MODEL_GEMINI_FLASH,
+                        model=model_gemini_flash,
                         contents=prompt
                     )
                     answer_text = getattr(response, "text", None) or ""
@@ -114,7 +118,6 @@ if st.button("Ask"):
                         st.markdown(f"- p. {p}")
             else:
                 st.markdown("- No page citations available.")
-
 
 
 st.markdown("---")
