@@ -105,7 +105,7 @@ if st.button("Ask"):
 
             st.subheader("Answer")
             if answer_text.strip():
-                st.markdown(answer_text)
+                st.info(answer_text)
             else:
                 st.warning("No answer has returned")
 
