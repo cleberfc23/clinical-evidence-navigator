@@ -6,6 +6,9 @@ from dotenv import load_dotenv
 from google import genai
 from generator import build_context, build_prompt
 MAX_FILE_SIZE_MB = 20
+MAX_REQUESTS = 3
+if "request_count" not in st.session_state:
+    st.session_state.request_count = 0
 
 
 def get_secrets():
@@ -14,6 +17,8 @@ def get_secrets():
     key = GEMINI_API_KEY or st.secrets.get("GEMINI_API_KEY")
     embedding = EMBEDDING_MODEL or st.secrets.get("EMBEDDING_MODEL")
     return model_name, key, embedding
+
+
 
 
 st.set_page_config(
@@ -41,6 +46,9 @@ client = genai.Client(api_key=gemini_api_key)
 
 results = st.container()
 if st.button("Ask"):
+    if st.session_state.request_count >= MAX_REQUESTS:
+        st.error(f"You can make only {MAX_REQUESTS} requests!")
+        st.stop()
     results.empty()
     with results:
         if uploaded_file is None:
@@ -106,6 +114,7 @@ if st.button("Ask"):
             st.subheader("Answer")
             if answer_text.strip():
                 st.info(answer_text)
+                st.session_state.request_count += 1
             else:
                 st.warning("No answer has returned")
 
