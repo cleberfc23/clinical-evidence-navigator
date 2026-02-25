@@ -16,10 +16,7 @@ st.set_page_config(
 )
 st.title("Clinical Evidence Navigator")
 st.markdown("Answers to clinical questions based on scientific evidence, driven by Retrieval Augmented Generation (RAG).")
-st.warning("""
-⚠️ **Warning:**
-This tool is intended for engineering and research purposes only.
-It does not provide medical advice and should not replace clinical judgment.""")
+
 
 
 uploaded_file = st.file_uploader(
@@ -30,6 +27,8 @@ user_question = st.text_input(
     "Enter your question"
 )
 
+GEMINI_API_KEY = st.secrets.get("GEMINI_API_KEY") 
+MODEL_GEMINI_FLASH = st.secrets.get("MODEL_GEMINI_FLASH")
 if not GEMINI_API_KEY:
     st.error("Missing GEMINI_API_KEY. Please seit it in your .env file")
     st.stop()
@@ -57,7 +56,6 @@ if st.button("Ask"):
             st.stop()
         else:
             with st.spinner("Processing document..."):
-
                 with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
                     tmp.write(uploaded_file.read())
                     temporary_document_path = tmp.name
@@ -118,5 +116,11 @@ if st.button("Ask"):
                 st.markdown("- No page citations available.")
 
 
+
+
+st.warning("""
+⚠️ **Warning:**
+This tool is intended for engineering and research purposes only.
+It does not provide medical advice and should not replace clinical judgment.""")
 st.markdown("---")
 st.markdown("© 2026 Cleber F. Carvalho")
