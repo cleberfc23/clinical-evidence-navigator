@@ -17,7 +17,8 @@ def create_vectorstore_from_pdf(pdf_path):
     chunks = splitter.split_documents(document_pdf)
 
     embeddings = HuggingFaceEmbeddings(
-        model_name=EMBEDDING_MODEL
+        model_name="BAAI/bge-small-en-v1.5"
+        # EMBEDDING_MODEL
     )
 
     vectorstore = Chroma.from_documents(
