@@ -117,10 +117,9 @@ if st.button("Ask"):
 
 
 
-
+st.markdown("---")
 st.warning("""
 ⚠️ **Warning:**
 This tool is intended for engineering and research purposes only.
 It does not provide medical advice and should not replace clinical judgment.""")
-st.markdown("---")
 st.markdown("© 2026 Cleber F. Carvalho")
