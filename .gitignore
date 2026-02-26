@@ -218,6 +218,8 @@ chroma/
 # Raw large files (optional)
 data/raw/
 
+data/*
+
 
 .DS_Store
 *.sqlite3

@@ -5,8 +5,14 @@ from ingestion import create_vectorstore_from_pdf
 from dotenv import load_dotenv
 from google import genai
 from generator import build_context, build_prompt
+import time
+import json
+from datetime import datetime
+from pathlib import Path
+debug_mode = 1
 MAX_FILE_SIZE_MB = 20
 MAX_REQUESTS = 3
+
 if "request_count" not in st.session_state:
     st.session_state.request_count = 0
 
@@ -17,8 +23,6 @@ def get_secrets():
     key = GEMINI_API_KEY or st.secrets.get("GEMINI_API_KEY")
     embedding = EMBEDDING_MODEL or st.secrets.get("EMBEDDING_MODEL")
     return model_name, key, embedding
-
-
 
 
 st.set_page_config(
@@ -68,13 +72,17 @@ if st.button("Ask"):
             st.stop()
         else:
             with st.spinner("Processing document..."):
+                t0 = time.perf_counter()
                 with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
                     tmp.write(uploaded_file.read())
                     temporary_document_path = tmp.name
 
                 try:
+                    t_index_start = time.perf_counter()
                     vectorstore = create_vectorstore_from_pdf(
                         temporary_document_path, embedding_model)
+                    index_s = round(
+                        (time.perf_counter() - t_index_start), 4)
                     st.success("Vector store created sucessfully!")
                 except Exception as e:
                     st.error("Error processing the uploaded PDF.")
@@ -82,7 +90,11 @@ if st.button("Ask"):
                     st.stop()
 
                 retriever = vectorstore.as_retriever(search_kwargs={"k": 4})
+                t_retrieval_start = time.perf_counter()
                 retrieved_docs = retriever.invoke(user_question)
+                retrieval_s = round(
+                    (time.perf_counter() - t_retrieval_start), 4)
+                chunks_retrieved = len(retrieved_docs)
                 if not retrieved_docs:
                     st.error(
                         "No relevant content found in the document for this question.")
@@ -100,11 +112,15 @@ if st.button("Ask"):
 
             with st.spinner("Generating answer..."):
                 try:
+                    t_llm_start = time.perf_counter()
                     response = client.models.generate_content(
                         model=model_gemini_flash,
                         contents=prompt
                     )
+                    llm_ms = round(
+                        (time.perf_counter() - t_llm_start), 4)
                     answer_text = getattr(response, "text", None) or ""
+                    total_s = round((time.perf_counter() - t0), 4)
 
                 except Exception as e:
                     st.error("Error while generating response from Gemini API.")
@@ -115,6 +131,39 @@ if st.button("Ask"):
             if answer_text.strip():
                 st.info(answer_text)
                 st.session_state.request_count += 1
+
+                if debug_mode:
+                    row1_col1, row1_col2 = st.columns(2)
+                    row2_col1, row2_col2 = st.columns(2)
+                    row3_col1, row3_col2 = st.columns(2)
+
+                    row1_col1.metric("End-to-end latency", f"{total_s} s")
+                    row1_col2.metric("Indexing time", f"{index_s} s")
+
+                    row2_col1.metric("Retrieval latency", f"{retrieval_s} s")
+                    row2_col2.metric("LLM latency", f"{llm_ms} s")
+
+                    row3_col1.metric("Chunks retrieved", chunks_retrieved)
+
+                    log_payload = {
+                        "timestamp_utc": datetime.utcnow().isoformat(),
+                        "query": user_question,
+                        "k": 4,
+                        "metrics": {
+                            "end_to_end_s": total_s,
+                            "indexing_s": index_s,
+                            "retrieval_s": retrieval_s,
+                            "llm_s": llm_ms,
+                            "chunks_retrieved": chunks_retrieved
+                        }
+                    }
+
+                    Path("data").mkdir(exist_ok=True)
+
+                    with open("data/metrics.jsonl", "a", encoding="utf-8") as f:
+                        f.write(json.dumps(log_payload,
+                                ensure_ascii=False) + "\n")
+
             else:
                 st.warning("No answer has returned")
 
