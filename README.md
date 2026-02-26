@@ -9,7 +9,7 @@ It is built with **LangChain** and **LangGraph** to orchestrate retrieval and re
 
 ---
 
-## 🎯 Project Goal
+## Project Goal
 
 Clinical guidelines and medical documents are often lengthy, complex, and difficult to navigate.
 This project aims to build a lightweight, accessible, and transparent system that:
@@ -23,7 +23,7 @@ This project aims to build a lightweight, accessible, and transparent system tha
 
 ---
 
-## 🧩 Tech Stack (v1.0)
+## Tech Stack (v1.0)
 
 - **Python**
 - **LangChain** (RAG components, prompts, retrieval)
@@ -35,7 +35,7 @@ This project aims to build a lightweight, accessible, and transparent system tha
 
 ---
 
-## 🧠 How It Works?
+## How It Works?
 
 The system follows a modular RAG pipeline:
 
@@ -51,7 +51,7 @@ The model is instructed to respond simply, strictly from retrieved sources.
 
 ---
 
-## 🏗 Architecture Overview
+## Architecture Overview
 
 ```bash
 clinical-evidence-navigator/
@@ -67,7 +67,7 @@ clinical-evidence-navigator/
 
 ---
 
-## ⚙️ Installation
+## Installation
 
 ### 1. Clone the repository
 
@@ -130,7 +130,7 @@ The app will open in your browser.
 ---
 
 
-## 🚧 Project Status
+## Project Status
 
 This repository is in MVP stage and under active development.
 
@@ -146,7 +146,7 @@ Planned next steps:
 
 ---
 
-## 👤 Author
+## Author
 
 Cleber F. Carvalho  
 
