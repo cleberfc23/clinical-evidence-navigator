@@ -9,6 +9,7 @@ import time
 import json
 from datetime import datetime
 from pathlib import Path
+import uuid
 debug_mode = 1
 MAX_FILE_SIZE_MB = 20
 MAX_REQUESTS = 3
@@ -72,6 +73,11 @@ if st.button("Ask"):
             st.stop()
         else:
             with st.spinner("Processing document..."):
+                pdf_signature = {
+                    "name": uploaded_file.name,
+                    "size_bytes": uploaded_file.size
+                }
+                run_id = str(uuid.uuid4())[:8]
                 t0 = time.perf_counter()
                 with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
                     tmp.write(uploaded_file.read())
@@ -117,7 +123,7 @@ if st.button("Ask"):
                         model=model_gemini_flash,
                         contents=prompt
                     )
-                    llm_ms = round(
+                    llm_s = round(
                         (time.perf_counter() - t_llm_start), 4)
                     answer_text = getattr(response, "text", None) or ""
                     total_s = round((time.perf_counter() - t0), 4)
@@ -141,19 +147,21 @@ if st.button("Ask"):
                     row1_col2.metric("Indexing time", f"{index_s} s")
 
                     row2_col1.metric("Retrieval latency", f"{retrieval_s} s")
-                    row2_col2.metric("LLM latency", f"{llm_ms} s")
+                    row2_col2.metric("LLM latency", f"{llm_s} s")
 
                     row3_col1.metric("Chunks retrieved", chunks_retrieved)
 
                     log_payload = {
+                        "run_id": run_id,
                         "timestamp_utc": datetime.utcnow().isoformat(),
+                        "pdf_signature": pdf_signature,
                         "query": user_question,
                         "k": 4,
                         "metrics": {
                             "end_to_end_s": total_s,
                             "indexing_s": index_s,
                             "retrieval_s": retrieval_s,
-                            "llm_s": llm_ms,
+                            "llm_s": llm_s,
                             "chunks_retrieved": chunks_retrieved
                         }
                     }
