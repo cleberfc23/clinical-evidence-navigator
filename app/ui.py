@@ -152,6 +152,7 @@ if st.button("Ask"):
                     row3_col1.metric("Chunks retrieved", chunks_retrieved)
 
                     log_payload = {
+                        "app_version": "v0.1.0",
                         "run_id": run_id,
                         "timestamp_utc": datetime.utcnow().isoformat(),
                         "pdf_signature": pdf_signature,
