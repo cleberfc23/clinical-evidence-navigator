@@ -34,11 +34,7 @@ st.set_page_config(
 )
 st.title("Clinical Evidence Navigator")
 st.markdown("Answers to clinical questions based on scientific evidence, driven by Retrieval Augmented Generation (RAG).")
-
-# uploaded_file = st.file_uploader(
-#     "Upload a clinical PDF document",
-#     type=["pdf"])
-
+st.caption("Fields covered: \n - Diabetes (Standards of Care 2026)")
 
 user_question = st.text_input(
     "Enter your question"
@@ -59,15 +55,6 @@ if st.button("Ask"):
         st.stop()
     results.empty()
     with results:
-        # if uploaded_file is None:
-        #     st.error("Please, upload a PDF document first!")
-        #     st.stop()
-        # elif uploaded_file.size > MAX_FILE_SIZE_MB*1024*1024:
-        #     st.error("Please upload a PDF smaller than 20MB")
-        #     st.stop()
-        #     elif uploaded_file.type != "application/pdf":
-        # st.error("Invalid file type. Please, upload a PDF document!")
-        # st.stop()
         if not user_question.strip():
             st.error("Please enter a question!")
             st.stop()
@@ -78,7 +65,7 @@ if st.button("Ask"):
             with st.spinner("Processing document..."):
                 run_id = str(uuid.uuid4())[:8]
                 t0 = time.perf_counter()
-                try:  # start vector store
+                try:
                     t_index_start = time.perf_counter()
                     vectorstore = create_vectorstore_from_pdf(embedding_model)
                     metric_index_s = round(

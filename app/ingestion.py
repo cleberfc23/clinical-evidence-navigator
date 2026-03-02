@@ -6,6 +6,7 @@ import requests
 import tempfile
 from config import DEFAULT_DOC, MAX_FILE_SIZE_MB
 
+
 def download_pdf_to_tempfile(url: str, max_mb: int = 20) -> str:
     max_bytes = max_mb * 1024 * 1024
     r = requests.get(url, timeout=30)
@@ -24,10 +25,11 @@ def download_pdf_to_tempfile(url: str, max_mb: int = 20) -> str:
     tmp.write(pdf_bytes)
     tmp.close()
     return tmp.name
-     
+
 
 def create_vectorstore_from_pdf(embedding_model):
-    temporary_document_path = download_pdf_to_tempfile(DEFAULT_DOC["url"], MAX_FILE_SIZE_MB)
+    temporary_document_path = download_pdf_to_tempfile(
+        DEFAULT_DOC["url"], MAX_FILE_SIZE_MB)
     loader = PyPDFLoader(temporary_document_path)
     document_pdf = loader.load()
 
