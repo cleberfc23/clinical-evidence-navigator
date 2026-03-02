@@ -49,7 +49,9 @@ streamlit run app/ui.py
 ```
 Create .env:
 GEMINI_API_KEY=your_api_key
+
 MODEL_GEMINI_FLASH=gemini-2.5-flash
+
 EMBEDDING_MODEL=BAAI/bge-small-en-v1.5
 
 ---
