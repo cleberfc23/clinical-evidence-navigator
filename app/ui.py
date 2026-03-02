@@ -87,7 +87,7 @@ if st.button("Ask"):
                     t_index_start = time.perf_counter()
                     vectorstore = create_vectorstore_from_pdf(
                         temporary_document_path, embedding_model)
-                    index_s = round(
+                    metric_index_s = round(
                         (time.perf_counter() - t_index_start), 4)
                     st.success("Vector store created sucessfully!")
                 except Exception as e:
@@ -98,9 +98,9 @@ if st.button("Ask"):
                 retriever = vectorstore.as_retriever(search_kwargs={"k": 4})
                 t_retrieval_start = time.perf_counter()
                 retrieved_docs = retriever.invoke(user_question)
-                retrieval_s = round(
+                metric_retrieval_s = round(
                     (time.perf_counter() - t_retrieval_start), 4)
-                chunks_retrieved = len(retrieved_docs)
+                metric_chunks_retrieved = len(retrieved_docs)
                 if not retrieved_docs:
                     st.error(
                         "No relevant content found in the document for this question.")
@@ -123,10 +123,10 @@ if st.button("Ask"):
                         model=model_gemini_flash,
                         contents=prompt
                     )
-                    llm_s = round(
+                    metric_llm_s = round(
                         (time.perf_counter() - t_llm_start), 4)
                     answer_text = getattr(response, "text", None) or ""
-                    total_s = round((time.perf_counter() - t0), 4)
+                    metric_total_s = round((time.perf_counter() - t0), 4)
 
                 except Exception as e:
                     st.error("Error while generating response from Gemini API.")
@@ -143,13 +143,13 @@ if st.button("Ask"):
                     row2_col1, row2_col2 = st.columns(2)
                     row3_col1, row3_col2 = st.columns(2)
 
-                    row1_col1.metric("End-to-end latency", f"{total_s} s")
-                    row1_col2.metric("Indexing time", f"{index_s} s")
+                    row1_col1.metric("End-to-end latency", f"{metric_total_s} s")
+                    row1_col2.metric("Indexing time", f"{metric_index_s} s")
 
-                    row2_col1.metric("Retrieval latency", f"{retrieval_s} s")
-                    row2_col2.metric("LLM latency", f"{llm_s} s")
+                    row2_col1.metric("Retrieval latency", f"{metric_retrieval_s} s")
+                    row2_col2.metric("LLM latency", f"{metric_llm_s} s")
 
-                    row3_col1.metric("Chunks retrieved", chunks_retrieved)
+                    row3_col1.metric("Chunks retrieved", metric_chunks_retrieved)
 
                     log_payload = {
                         "app_version": "v0.1.0",
@@ -159,11 +159,11 @@ if st.button("Ask"):
                         "query": user_question,
                         "k": 4,
                         "metrics": {
-                            "end_to_end_s": total_s,
-                            "indexing_s": index_s,
-                            "retrieval_s": retrieval_s,
-                            "llm_s": llm_s,
-                            "chunks_retrieved": chunks_retrieved
+                            "end_to_end_s": metric_total_s,
+                            "indexing_s": metric_index_s,
+                            "retrieval_s": metric_retrieval_s,
+                            "llm_s": metric_llm_s,
+                            "chunks_retrieved": metric_chunks_retrieved
                         }
                     }
 
