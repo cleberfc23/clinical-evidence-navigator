@@ -1,6 +1,6 @@
 # Clinical Evidence Navigator 🩺
 
-Clinical Evidence Navigator is a domain-focused Retrieval-Augmented Generation (RAG) system for querying diabetes clinical guidelines and generating citation-backed answers.
+Clinical Evidence Navigator is a domain-focused Retrieval-Augmented Generation (RAG) system for querying clinical guidelines and generating citation-backed answers.
 
 Designed to demonstrate transparent retrieval workflows, grounded LLM responses, and measurable AI system performance.
 
