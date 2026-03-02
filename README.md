@@ -1,7 +1,6 @@
 # Clinical Evidence Navigator 
-![Status](https://img.shields.io/badge/status-in%20progress-yellow?style=for-the-badge)
+![Status](https://img.shields.io/badge/status-active%20development-yellow?style=for-the-badge)
 [![Live Demo](https://img.shields.io/badge/Live-Demo-green?style=for-the-badge&logo=streamlit)](https://clinical-evidence-navigator.streamlit.app/)
-
 Clinical Evidence Navigator is a domain-focused Retrieval-Augmented Generation (RAG) system for querying clinical guidelines and generating citation-backed answers.
 
 Designed to demonstrate transparent retrieval workflows, grounded LLM responses, and measurable AI system performance.
