@@ -10,8 +10,10 @@ import json
 from datetime import datetime
 from pathlib import Path
 import uuid
+import tempfile
+from urllib.parse import urlparse
 debug_mode = 1
-MAX_FILE_SIZE_MB = 20
+
 MAX_REQUESTS = 3
 
 if "request_count" not in st.session_state:
@@ -33,9 +35,11 @@ st.set_page_config(
 st.title("Clinical Evidence Navigator")
 st.markdown("Answers to clinical questions based on scientific evidence, driven by Retrieval Augmented Generation (RAG).")
 
-uploaded_file = st.file_uploader(
-    "Upload a clinical PDF document",
-    type=["pdf"])
+# uploaded_file = st.file_uploader(
+#     "Upload a clinical PDF document",
+#     type=["pdf"])
+
+
 
 user_question = st.text_input(
     "Enter your question"
@@ -56,37 +60,28 @@ if st.button("Ask"):
         st.stop()
     results.empty()
     with results:
-        if uploaded_file is None:
-            st.error("Please, upload a PDF document first!")
-            st.stop()
-        elif uploaded_file.size > MAX_FILE_SIZE_MB*1024*1024:
-            st.error("Please upload a PDF smaller than 20MB")
-            st.stop()
-        elif not user_question.strip():
+        # if uploaded_file is None:
+        #     st.error("Please, upload a PDF document first!")
+        #     st.stop()
+        # elif uploaded_file.size > MAX_FILE_SIZE_MB*1024*1024:
+        #     st.error("Please upload a PDF smaller than 20MB")
+        #     st.stop()
+        #     elif uploaded_file.type != "application/pdf":
+        # st.error("Invalid file type. Please, upload a PDF document!")
+        # st.stop()
+        if not user_question.strip():
             st.error("Please enter a question!")
             st.stop()
         elif len(user_question.strip()) < 8:
             st.error("Please enter a more specific question!")
             st.stop()
-        elif uploaded_file.type != "application/pdf":
-            st.error("Invalid file type. Please, upload a PDF document!")
-            st.stop()
         else:
             with st.spinner("Processing document..."):
-                pdf_signature = {
-                    "name": uploaded_file.name,
-                    "size_bytes": uploaded_file.size
-                }
                 run_id = str(uuid.uuid4())[:8]
                 t0 = time.perf_counter()
-                with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
-                    tmp.write(uploaded_file.read())
-                    temporary_document_path = tmp.name
-
-                try:
+                try:  # start vector store
                     t_index_start = time.perf_counter()
-                    vectorstore = create_vectorstore_from_pdf(
-                        temporary_document_path, embedding_model)
+                    vectorstore = create_vectorstore_from_pdf(embedding_model)
                     metric_index_s = round(
                         (time.perf_counter() - t_index_start), 4)
                     st.success("Vector store created sucessfully!")
@@ -143,19 +138,21 @@ if st.button("Ask"):
                     row2_col1, row2_col2 = st.columns(2)
                     row3_col1, row3_col2 = st.columns(2)
 
-                    row1_col1.metric("End-to-end latency", f"{metric_total_s} s")
+                    row1_col1.metric("End-to-end latency",
+                                     f"{metric_total_s} s")
                     row1_col2.metric("Indexing time", f"{metric_index_s} s")
 
-                    row2_col1.metric("Retrieval latency", f"{metric_retrieval_s} s")
+                    row2_col1.metric("Retrieval latency",
+                                     f"{metric_retrieval_s} s")
                     row2_col2.metric("LLM latency", f"{metric_llm_s} s")
 
-                    row3_col1.metric("Chunks retrieved", metric_chunks_retrieved)
+                    row3_col1.metric("Chunks retrieved",
+                                     metric_chunks_retrieved)
 
                     log_payload = {
                         "app_version": "v0.1.0",
                         "run_id": run_id,
                         "timestamp_utc": datetime.utcnow().isoformat(),
-                        "pdf_signature": pdf_signature,
                         "query": user_question,
                         "k": 4,
                         "metrics": {
