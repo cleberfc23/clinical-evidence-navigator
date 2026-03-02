@@ -1,6 +1,6 @@
 import streamlit as st
 import tempfile
-from config import GEMINI_API_KEY, MODEL_GEMINI_FLASH, EMBEDDING_MODEL
+from config import GEMINI_API_KEY, MODEL_GEMINI_FLASH, EMBEDDING_MODEL, DEFAULT_DOC
 from ingestion import create_vectorstore_from_pdf
 from dotenv import load_dotenv
 from google import genai
@@ -38,7 +38,6 @@ st.markdown("Answers to clinical questions based on scientific evidence, driven 
 # uploaded_file = st.file_uploader(
 #     "Upload a clinical PDF document",
 #     type=["pdf"])
-
 
 
 user_question = st.text_input(
@@ -152,6 +151,7 @@ if st.button("Ask"):
                     log_payload = {
                         "app_version": "v0.1.0",
                         "run_id": run_id,
+                        "pdf_signature": DEFAULT_DOC["doc_id"],
                         "timestamp_utc": datetime.utcnow().isoformat(),
                         "query": user_question,
                         "k": 4,
