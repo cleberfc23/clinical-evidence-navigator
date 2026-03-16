@@ -1,30 +1,28 @@
 import streamlit as st
 import tempfile
-from config import DEFAULT_DOC, get_secrets, validate_runtime_config
+from config import DEFAULT_DOC, get_secrets, validate_runtime_config, DEBUG_MODE, MAX_REQUESTS, RETRIEVAL_TOP_K
 from ingestion import create_vectorstore
-from google import genai
 from generator import build_context, build_prompt
 import time
 import json
 from datetime import datetime
 from pathlib import Path
 import uuid
-import tempfile
-from urllib.parse import urlparse
-debug_mode = 1
+from generator import generate_answer, build_client
 
-MAX_REQUESTS = 3
 if "request_count" not in st.session_state:
     st.session_state.request_count = 0
 
 run_time_config_dict = get_secrets()
 missing_fields = validate_runtime_config(run_time_config_dict)
-model_gemini_flash = list(run_time_config_dict.values())[0]
-gemini_api_key = list(run_time_config_dict.values())[1]
-embedding_model = list(run_time_config_dict.values())[2]
+model_gemini_flash = run_time_config_dict["model_name"]
+gemini_api_key = run_time_config_dict["api_key"]
+embedding_model = run_time_config_dict["embedding_model"]
 
-if not gemini_api_key:
-    st.error("Missing GEMINI_API_KEY. Please seit it in your .env file")
+if missing_fields:
+    st.error(
+        "Missing required configuration: " + ", ".join(missing_fields)
+    )
     st.stop()
 
 
@@ -39,10 +37,7 @@ st.caption("Fields covered: \n - Diabetes (Standards of Care 2026)")
 user_question = st.text_input(
     "Enter your question"
 )
-
-
-client = genai.Client(api_key=gemini_api_key)
-
+client = build_client(gemini_api_key)
 results = st.container()
 if st.button("Ask"):
     if st.session_state.request_count >= MAX_REQUESTS:
@@ -58,29 +53,39 @@ if st.button("Ask"):
             st.error("Please enter a more specific question!")
             st.stop()
         else:
-            with st.spinner("Processing document..."):
-                run_id = str(uuid.uuid4())[:8]
-                t0 = time.perf_counter()
+            run_id = str(uuid.uuid4())[:8]
+            t0 = time.perf_counter()
+
+            with st.spinner("Preparing document index..."):
                 try:
                     t_index_start = time.perf_counter()
                     vectorstore = create_vectorstore(embedding_model)
                     metric_index_s = round(
-                        (time.perf_counter() - t_index_start), 4)
-                    st.success("Vector store created sucessfully!")
+                        time.perf_counter() - t_index_start, 4)
+                    st.success("Vector store created successfully!")
                 except Exception as e:
-                    st.error("Error processing the uploaded PDF.")
+                    st.error("Error while preparing the document index.")
                     st.write(str(e))
                     st.stop()
 
-                retriever = vectorstore.as_retriever(search_kwargs={"k": 4})
-                t_retrieval_start = time.perf_counter()
-                retrieved_docs = retriever.invoke(user_question)
-                metric_retrieval_s = round(
-                    (time.perf_counter() - t_retrieval_start), 4)
-                metric_chunks_retrieved = len(retrieved_docs)
-                if not retrieved_docs:
-                    st.error(
-                        "No relevant content found in the document for this question.")
+            with st.spinner("Retrieving relevant evidence..."):
+                try:
+                    retriever = vectorstore.as_retriever(
+                        search_kwargs={"k": RETRIEVAL_TOP_K})
+
+                    t_retrieval_start = time.perf_counter()
+                    retrieved_docs = retriever.invoke(user_question)
+                    metric_retrieval_s = round(
+                        time.perf_counter() - t_retrieval_start, 4)
+                    metric_chunks_retrieved = len(retrieved_docs)
+
+                    if not retrieved_docs:
+                        st.error("No relevant content found for this question.")
+                        st.stop()
+
+                except Exception as e:
+                    st.error("Error while retrieving relevant content.")
+                    st.write(str(e))
                     st.stop()
 
             with st.expander("Show retrieved chunks (debug)"):
@@ -96,13 +101,16 @@ if st.button("Ask"):
             with st.spinner("Generating answer..."):
                 try:
                     t_llm_start = time.perf_counter()
-                    response = client.models.generate_content(
-                        model=model_gemini_flash,
-                        contents=prompt
+                    generation_result = generate_answer(
+                        client=client,
+                        model_name=model_gemini_flash,
+                        user_question=user_question,
+                        retrieved_docs=retrieved_docs,
                     )
                     metric_llm_s = round(
                         (time.perf_counter() - t_llm_start), 4)
-                    answer_text = getattr(response, "text", None) or ""
+                    answer_text = generation_result["answer_text"]
+                    cited_pages = generation_result["cited_pages"]
                     metric_total_s = round((time.perf_counter() - t0), 4)
 
                 except Exception as e:
@@ -115,7 +123,7 @@ if st.button("Ask"):
                 st.info(answer_text)
                 st.session_state.request_count += 1
 
-                if debug_mode:
+                if DEBUG_MODE:
                     row1_col1, row1_col2 = st.columns(2)
                     row2_col1, row2_col2 = st.columns(2)
                     row3_col1, row3_col2 = st.columns(2)
