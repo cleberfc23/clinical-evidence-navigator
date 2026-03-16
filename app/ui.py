@@ -1,8 +1,7 @@
 import streamlit as st
 import tempfile
-from config import GEMINI_API_KEY, MODEL_GEMINI_FLASH, EMBEDDING_MODEL, DEFAULT_DOC
+from config import DEFAULT_DOC, get_secrets, validate_runtime_config
 from ingestion import create_vectorstore_from_pdf
-from dotenv import load_dotenv
 from google import genai
 from generator import build_context, build_prompt
 import time
@@ -15,17 +14,20 @@ from urllib.parse import urlparse
 debug_mode = 1
 
 MAX_REQUESTS = 3
-
 if "request_count" not in st.session_state:
     st.session_state.request_count = 0
 
+run_time_config_dict = get_secrets()
+missing_fields = validate_runtime_config(run_time_config_dict)
+model_gemini_flash = list(run_time_config_dict.values())[0]
+gemini_api_key = list(run_time_config_dict.values())[1]
+embedding_model = list(run_time_config_dict.values())[2]
 
-def get_secrets():
-    load_dotenv()
-    model_name = MODEL_GEMINI_FLASH or st.secrets.get("MODEL_GEMINI_FLASH")
-    key = GEMINI_API_KEY or st.secrets.get("GEMINI_API_KEY")
-    embedding = EMBEDDING_MODEL or st.secrets.get("EMBEDDING_MODEL")
-    return model_name, key, embedding
+if not gemini_api_key:
+    st.error("Missing GEMINI_API_KEY. Please seit it in your .env file")
+    st.stop()
+
+
 
 
 st.set_page_config(
@@ -40,11 +42,6 @@ user_question = st.text_input(
     "Enter your question"
 )
 
-model_gemini_flash, gemini_api_key, embedding_model = get_secrets()
-
-if not gemini_api_key:
-    st.error("Missing GEMINI_API_KEY. Please seit it in your .env file")
-    st.stop()
 
 client = genai.Client(api_key=gemini_api_key)
 

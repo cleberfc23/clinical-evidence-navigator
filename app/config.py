@@ -1,5 +1,6 @@
 import os
 from dotenv import load_dotenv
+import streamlit as st
 
 load_dotenv()
 
@@ -16,3 +17,29 @@ DEFAULT_DOC = {
 }
 
 MAX_FILE_SIZE_MB = 20
+
+
+def get_secrets():
+    load_dotenv()
+    model_name = MODEL_GEMINI_FLASH or st.secrets.get("MODEL_GEMINI_FLASH")
+    key = GEMINI_API_KEY or st.secrets.get("GEMINI_API_KEY")
+    embedding = EMBEDDING_MODEL or st.secrets.get("EMBEDDING_MODEL")
+
+    return {
+        "model_name": model_name,
+        "api_key": key,
+        "embedding_model": embedding
+    }
+
+
+def validate_runtime_config(config: dict):
+    missing_fields = []
+
+    if not config.get("model_name"):
+        missing_fields.append("MODEL_GEMINI_FLASH")
+    if not config.get("api_key"):
+        missing_fields.append("GEMINI_API_KEY")
+    if not config.get("embedding_model"):
+        missing_fields.append("EMBEDDING_MODEL")
+
+    return missing_fields
