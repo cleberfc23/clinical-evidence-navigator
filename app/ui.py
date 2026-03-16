@@ -1,14 +1,10 @@
 import streamlit as st
-import tempfile
 from config import DEFAULT_DOC, get_secrets, validate_runtime_config, DEBUG_MODE, MAX_REQUESTS, RETRIEVAL_TOP_K
 from ingestion import create_vectorstore
-from generator import build_context, build_prompt
 import time
-import json
-from datetime import datetime
-from pathlib import Path
 import uuid
 from generator import generate_answer, build_client
+from core.observability import write_log, build_log_payload
 
 if "request_count" not in st.session_state:
     st.session_state.request_count = 0
@@ -95,9 +91,6 @@ if st.button("Ask"):
                     st.write(document.page_content)
                     st.markdown("---")
 
-            context, cited_pages = build_context(retrieved_docs)
-            prompt = build_prompt(user_question, context)
-
             with st.spinner("Generating answer..."):
                 try:
                     t_llm_start = time.perf_counter()
@@ -139,30 +132,22 @@ if st.button("Ask"):
                     row3_col1.metric("Chunks retrieved",
                                      metric_chunks_retrieved)
 
-                    log_payload = {
-                        "app_version": "v0.1.0",
-                        "run_id": run_id,
-                        "pdf_signature": DEFAULT_DOC["doc_id"],
-                        "timestamp_utc": datetime.utcnow().isoformat(),
-                        "query": user_question,
-                        "k": 4,
-                        "metrics": {
-                            "end_to_end_s": metric_total_s,
-                            "indexing_s": metric_index_s,
-                            "retrieval_s": metric_retrieval_s,
-                            "llm_s": metric_llm_s,
-                            "chunks_retrieved": metric_chunks_retrieved
-                        }
-                    }
-
-                    Path("data").mkdir(exist_ok=True)
-
-                    with open("data/metrics.jsonl", "a", encoding="utf-8") as f:
-                        f.write(json.dumps(log_payload,
-                                ensure_ascii=False) + "\n")
+                    log_payload = build_log_payload(
+                        app_version="v0.1.0",
+                        run_id=run_id,
+                        doc_id=DEFAULT_DOC["doc_id"],
+                        query=user_question,
+                        retrieval_top_k=RETRIEVAL_TOP_K,
+                        end_to_end_s=metric_total_s,
+                        indexing_s=metric_index_s,
+                        retrieval_s=metric_retrieval_s,
+                        llm_s=metric_llm_s,
+                        chunks_retrieved=metric_chunks_retrieved,
+                    )
+                    write_log(log_payload)
 
             else:
-                st.warning("No answer has returned")
+                st.warning("No answer was returned")
 
             st.subheader("Citations")
             if cited_pages:
