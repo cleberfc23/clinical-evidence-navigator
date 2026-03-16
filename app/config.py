@@ -17,6 +17,8 @@ DEFAULT_DOC = {
 }
 
 MAX_FILE_SIZE_MB = 20
+CHUNK_SIZE = 1000
+CHUNK_OVERLAP = 200
 
 
 def get_secrets():

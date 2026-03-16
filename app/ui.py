@@ -1,7 +1,7 @@
 import streamlit as st
 import tempfile
 from config import DEFAULT_DOC, get_secrets, validate_runtime_config
-from ingestion import create_vectorstore_from_pdf
+from ingestion import create_vectorstore
 from google import genai
 from generator import build_context, build_prompt
 import time
@@ -28,8 +28,6 @@ if not gemini_api_key:
     st.stop()
 
 
-
-
 st.set_page_config(
     page_title="Clinical Evidence Navigator",
     layout="wide"
@@ -51,6 +49,7 @@ if st.button("Ask"):
         st.error(f"You can make only {MAX_REQUESTS} requests!")
         st.stop()
     results.empty()
+
     with results:
         if not user_question.strip():
             st.error("Please enter a question!")
@@ -64,7 +63,7 @@ if st.button("Ask"):
                 t0 = time.perf_counter()
                 try:
                     t_index_start = time.perf_counter()
-                    vectorstore = create_vectorstore_from_pdf(embedding_model)
+                    vectorstore = create_vectorstore(embedding_model)
                     metric_index_s = round(
                         (time.perf_counter() - t_index_start), 4)
                     st.success("Vector store created sucessfully!")

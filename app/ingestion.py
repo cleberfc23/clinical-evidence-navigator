@@ -4,10 +4,10 @@ from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.vectorstores import Chroma
 import requests
 import tempfile
-from config import DEFAULT_DOC, MAX_FILE_SIZE_MB
+from config import DEFAULT_DOC, MAX_FILE_SIZE_MB, CHUNK_SIZE, CHUNK_OVERLAP
 
 
-def download_pdf_to_tempfile(url: str, max_mb: int = 20) -> str:
+def download_to_tempfile(url: str, max_mb: int = 20) -> str:
     max_bytes = max_mb * 1024 * 1024
     r = requests.get(url, timeout=30)
     r.raise_for_status()
@@ -27,25 +27,44 @@ def download_pdf_to_tempfile(url: str, max_mb: int = 20) -> str:
     return tmp.name
 
 
-def create_vectorstore_from_pdf(embedding_model):
-    temporary_document_path = download_pdf_to_tempfile(
-        DEFAULT_DOC["url"], MAX_FILE_SIZE_MB)
-    loader = PyPDFLoader(temporary_document_path)
-    document_pdf = loader.load()
+def load_documents(url_path: str):
+    loader = PyPDFLoader(url_path)
+    return loader.load()
 
+
+def split_documents(documents, chunk_size: int, chunk_overlap: int):
     splitter = RecursiveCharacterTextSplitter(
-        chunk_size=1000,
-        chunk_overlap=200
+        chunk_size=chunk_size,
+        chunk_overlap=chunk_overlap
     )
-    chunks = splitter.split_documents(document_pdf)
+    return splitter.split_documents(documents)
 
-    embeddings = HuggingFaceEmbeddings(
-        model_name=embedding_model
-    )
 
-    vectorstore = Chroma.from_documents(
+def build_embeddings(model: str):
+    return HuggingFaceEmbeddings(model_name=model)
+
+
+def build_vectorstore(chunks, embeddings):
+    return Chroma.from_documents(
         documents=chunks,
         embedding=embeddings
     )
+
+
+def create_vectorstore(embedding_model: str):
+    url_path = download_to_tempfile(
+        url=DEFAULT_DOC["url"],
+        max_mb=MAX_FILE_SIZE_MB
+    )
+
+    documents_loader = load_documents(url_path)
+
+    chunks = split_documents(
+        documents=documents_loader,
+        chunk_size=CHUNK_SIZE,
+        chunk_overlap=CHUNK_OVERLAP
+    )
+    embeddings = build_embeddings(embedding_model)
+    vectorstore = build_vectorstore(chunks, embeddings)
 
     return vectorstore
