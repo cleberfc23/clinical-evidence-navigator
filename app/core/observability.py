@@ -3,6 +3,18 @@ from pathlib import Path
 import datetime
 
 
+def serialize_retrieved_docs(retrieved_docs,
+                             max_chars: int = 500) -> list[dict]:
+    artifacts = []
+    for doc in retrieved_docs:
+        artifacts.append({
+            "page": doc.metadata.get("page"),
+            "content": doc.page_content.strip()[:max_chars]
+        }
+        )
+    return artifacts
+
+
 def build_log_payload(
     app_version: str,
     run_id: str,
@@ -14,7 +26,15 @@ def build_log_payload(
     retrieval_s: float,
     llm_s: float,
     chunks_retrieved: int,
+    retrieved_docs,
+    answer_text_by_lmm: str,
+    cited_pages: list[int],
+    max_artifact_chars: int = 500,
 ) -> dict:
+    serialized_chunks = serialize_retrieved_docs(
+        retrieved_docs=retrieved_docs,
+        max_chars=max_artifact_chars
+    )
     return {
         "app_version": app_version,
         "run_id": run_id,
@@ -29,6 +49,12 @@ def build_log_payload(
             "llm_s": llm_s,
             "chunks_retrieved": chunks_retrieved,
         },
+        "artifacs": {
+            "answer_text": answer_text_by_lmm,
+            "cited_pages": cited_pages,
+            "retrieved_chunks": serialized_chunks
+        }
+
     }
 
 

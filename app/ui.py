@@ -143,6 +143,9 @@ if st.button("Ask"):
                         retrieval_s=metric_retrieval_s,
                         llm_s=metric_llm_s,
                         chunks_retrieved=metric_chunks_retrieved,
+                        retrieved_docs=retrieved_docs,
+                        answer_text_by_lmm=answer_text,
+                        cited_pages=cited_pages
                     )
                     write_log(log_payload)
 
