@@ -1,10 +1,10 @@
 import streamlit as st
-from config import DEFAULT_DOC, get_secrets, validate_runtime_config, DEBUG_MODE, MAX_REQUESTS, RETRIEVAL_TOP_K
-from ingestion import create_vectorstore
+from core.settings import DEFAULT_DOC, get_secrets, validate_runtime_config, DEBUG_MODE, MAX_REQUESTS, RETRIEVAL_TOP_K
 import time
 import uuid
-from generator import generate_answer, build_client
+from app.generator import generate_answer, build_client
 from core.observability import write_log, build_log_payload
+from ingestion.pipeline import create_vectorstore
 
 if "request_count" not in st.session_state:
     st.session_state.request_count = 0

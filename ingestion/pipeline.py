@@ -4,7 +4,8 @@ from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.vectorstores import Chroma
 import requests
 import tempfile
-from config import DEFAULT_DOC, MAX_FILE_SIZE_MB, CHUNK_SIZE, CHUNK_OVERLAP
+from core.settings import DEFAULT_DOC, MAX_FILE_SIZE_MB, CHUNK_SIZE, CHUNK_OVERLAP
+
 
 
 def download_to_tempfile(url: str, max_mb: int = 20) -> str:
