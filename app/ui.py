@@ -4,7 +4,7 @@ import time
 import uuid
 from app.generator import generate_answer, build_client
 from core.observability import write_log, build_log_payload
-from ingestion.pipeline import load_vectorstore, create_vectorstore
+from ingestion.pipeline import load_vectorstore
 
 if "request_count" not in st.session_state:
     st.session_state.request_count = 0

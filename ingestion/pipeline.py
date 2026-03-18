@@ -4,9 +4,8 @@ from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.vectorstores import Chroma
 import requests
 import tempfile
-from path import Path
-from core.settings import DEFAULT_DOC, MAX_FILE_SIZE_MB, CHUNK_SIZE, CHUNK_OVERLAP
-VECTORSTORE_DIR = DEFAULT_DOC["url"]
+from pathlib import Path
+from core.settings import DEFAULT_DOC, MAX_FILE_SIZE_MB, CHUNK_SIZE, CHUNK_OVERLAP, CHROMA_DIR, YELLOW, RESET
 
 
 def download_to_tempfile(url: str, max_mb: int = 20) -> str:
@@ -30,11 +29,14 @@ def download_to_tempfile(url: str, max_mb: int = 20) -> str:
 
 
 def load_documents(url_path: str):
+    print(f"{YELLOW}Loading documents...{RESET}")
     loader = PyPDFLoader(url_path)
     return loader.load()
 
 
 def split_documents(documents, chunk_size: int, chunk_overlap: int):
+
+    print(f"{YELLOW}Splitting documents...{RESET}")
     splitter = RecursiveCharacterTextSplitter(
         chunk_size=chunk_size,
         chunk_overlap=chunk_overlap
@@ -43,32 +45,47 @@ def split_documents(documents, chunk_size: int, chunk_overlap: int):
 
 
 def build_embeddings(model: str):
+    print(f"{YELLOW}Building embeddings...{RESET}")
     return HuggingFaceEmbeddings(model_name=model)
 
 
-def build_vectorstore(chunks, embeddings):
+def build_vectorstore(chunks, embeddings, persist_directory):
+    print(f"{YELLOW}Building Vectorstore...{RESET}")
+
     return Chroma.from_documents(
         documents=chunks,
-        embedding=embeddings
+        embedding=embeddings,
+        persist_directory=persist_directory
     )
 
 
-def load_vectorstore(embedding_model: str, persist_directory: str = VECTORSTORE_DIR):
-    if not Path(persist_directory).exists():
+def load_vectorstore(embedding_model: str, persist_directory: str = CHROMA_DIR):
+    print(f"{YELLOW}Loading Vectorstore...{RESET}")
+
+    persist_path = Path(persist_directory)
+
+    if not persist_path.exists():
         raise FileNotFoundError(
-            f"Vectorstore nof found at '{persist_directory}.'"
+            f"Vectorstore not found at '{persist_directory}'"
         )
+
+    if not any(persist_path.iterdir()):
+        raise FileNotFoundError(
+            f"Vectorstore directory is empty: '{persist_directory}'"
+        )
+
     embeddings = build_embeddings(embedding_model)
+
     return Chroma(
-        persist_directory=persist_directory,
-        embedding_function=embeddings
+        persist_directory=str(persist_path),
+        embedding_function=embeddings,
     )
 
 
 def run_pipeline(
     embedding_model: str,
     source_url: str = DEFAULT_DOC["url"],
-    persist_directory: str = VECTORSTORE_DIR,
+    persist_directory: str = CHROMA_DIR,
 ):
     Path(persist_directory).mkdir(parents=True, exist_ok=True)
 
@@ -93,23 +110,5 @@ def run_pipeline(
         persist_directory=persist_directory,
     )
 
-    return vectorstore
-
-
-def create_vectorstore(embedding_model: str):
-    url_path = download_to_tempfile(
-        url=DEFAULT_DOC["url"],
-        max_mb=MAX_FILE_SIZE_MB
-    )
-
-    documents_loader = load_documents(url_path)
-
-    chunks = split_documents(
-        documents=documents_loader,
-        chunk_size=CHUNK_SIZE,
-        chunk_overlap=CHUNK_OVERLAP
-    )
-    embeddings = build_embeddings(embedding_model)
-    vectorstore = build_vectorstore(chunks, embeddings)
-
+    print(f"{YELLOW}Finished pipeline ingestion! {RESET}")
     return vectorstore

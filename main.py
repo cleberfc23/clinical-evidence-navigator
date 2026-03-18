@@ -17,6 +17,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--mode", choices=["ui", "ingestion"], required=True)
+    
 
     args = parser.parse_args()
 
