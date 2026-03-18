@@ -6,7 +6,7 @@ import requests
 import tempfile
 from path import Path
 from core.settings import DEFAULT_DOC, MAX_FILE_SIZE_MB, CHUNK_SIZE, CHUNK_OVERLAP
-VECTORSTORE_DIR = "/Users/cleberfcarvalho/Documents/myGitHub/clinical-evidence-navigator/data/processed/chroma"
+VECTORSTORE_DIR = DEFAULT_DOC["url"]
 
 
 def download_to_tempfile(url: str, max_mb: int = 20) -> str:

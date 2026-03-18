@@ -55,8 +55,8 @@ if st.button("Ask"):
             with st.spinner("Preparing document index..."):
                 try:
                     t_index_start = time.perf_counter()
-                    # vectorstore = load_vectorstore(embedding_model)
-                    vectorstore = create_vectorstore(embedding_model)
+                    vectorstore = load_vectorstore(embedding_model)
+                    # vectorstore = create_vectorstore(embedding_model)
                     metric_index_s = round(
                         time.perf_counter() - t_index_start, 4)
                     st.success("Vector store created successfully!")
