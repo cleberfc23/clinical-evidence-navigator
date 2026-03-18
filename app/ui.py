@@ -1,13 +1,25 @@
-import streamlit as st
-from core.settings import DEFAULT_DOC, get_secrets, validate_runtime_config, DEBUG_MODE, MAX_REQUESTS, RETRIEVAL_TOP_K
-import time
-import uuid
 import sys
 from pathlib import Path
+
+ROOT_DIR = Path(__file__).resolve().parent.parent
+if str(ROOT_DIR) not in sys.path:
+    sys.path.append(str(ROOT_DIR))
+
+import streamlit as st
+import time
+import uuid
+
+from core.settings import (
+    DEFAULT_DOC,
+    get_secrets,
+    validate_runtime_config,
+    DEBUG_MODE,
+    MAX_REQUESTS,
+    RETRIEVAL_TOP_K,
+)
 from app.generator import generate_answer, build_client
 from core.observability import write_log, build_log_payload
 from ingestion.pipeline import load_vectorstore
-sys.path.append(str(Path(__file__).resolve().parent.parent))
 
 if "request_count" not in st.session_state:
     st.session_state.request_count = 0
