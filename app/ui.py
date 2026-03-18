@@ -4,7 +4,7 @@ import time
 import uuid
 from app.generator import generate_answer, build_client
 from core.observability import write_log, build_log_payload
-from ingestion.pipeline import create_vectorstore
+from ingestion.pipeline import load_vectorstore, create_vectorstore
 
 if "request_count" not in st.session_state:
     st.session_state.request_count = 0
@@ -55,6 +55,7 @@ if st.button("Ask"):
             with st.spinner("Preparing document index..."):
                 try:
                     t_index_start = time.perf_counter()
+                    # vectorstore = load_vectorstore(embedding_model)
                     vectorstore = create_vectorstore(embedding_model)
                     metric_index_s = round(
                         time.perf_counter() - t_index_start, 4)

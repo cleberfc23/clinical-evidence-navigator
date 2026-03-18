@@ -1,11 +1,15 @@
+import sys
+
 def run_ui():
     import subprocess
-    subprocess.run(["streamlit", "run", "app/ui.py"])
+    # subprocess.run(["streamlit", "run", "app/ui.py"])
+    subprocess.run([sys.executable, "-m", "streamlit", "run", "app/ui.py"])
 
 
 def run_ingestion():
     from ingestion.pipeline import run_pipeline
-    run_pipeline()
+    from core.settings import EMBEDDING_MODEL
+    run_pipeline(embedding_model=EMBEDDING_MODEL)
 
 
 if __name__ == "__main__":
