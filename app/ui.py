@@ -1,14 +1,5 @@
-import sys
-from pathlib import Path
-
-ROOT_DIR = Path(__file__).resolve().parent.parent
-if str(ROOT_DIR) not in sys.path:
-    sys.path.append(str(ROOT_DIR))
-
-import streamlit as st
-import time
-import uuid
-
+from core.observability import write_log, build_log_payload
+from app.generator import generate_answer, build_client
 from core.settings import (
     DEFAULT_DOC,
     get_secrets,
@@ -17,9 +8,17 @@ from core.settings import (
     MAX_REQUESTS,
     RETRIEVAL_TOP_K,
 )
-from app.generator import generate_answer, build_client
-from core.observability import write_log, build_log_payload
-from ingestion.pipeline import load_vectorstore
+import uuid
+import time
+import streamlit as st
+import sys
+from pathlib import Path
+from core.rag_service import answer_question
+
+ROOT_DIR = Path(__file__).resolve().parent.parent
+if str(ROOT_DIR) not in sys.path:
+    sys.path.append(str(ROOT_DIR))
+
 
 if "request_count" not in st.session_state:
     st.session_state.request_count = 0
@@ -70,8 +69,14 @@ if st.button("Ask"):
             with st.spinner("Preparing document index..."):
                 try:
                     t_index_start = time.perf_counter()
-                    vectorstore = load_vectorstore(embedding_model)
-                    # vectorstore = create_vectorstore(embedding_model)
+                    # vectorstore = load_vectorstore(embedding_model)
+                    result = answer_question(
+                        user_question=user_question,
+                        embedding_model=embedding_model,
+                        client=client,
+                        model_name=model_gemini_flash,
+                        top_k=RETRIEVAL_TOP_K,
+                    )
                     metric_index_s = round(
                         time.perf_counter() - t_index_start, 4)
                     st.success("Vector store created successfully!")
@@ -82,18 +87,22 @@ if st.button("Ask"):
 
             with st.spinner("Retrieving relevant evidence..."):
                 try:
-                    retriever = vectorstore.as_retriever(
-                        search_kwargs={"k": RETRIEVAL_TOP_K})
+                    # retriever = vectorstore.as_retriever(
+                    #     search_kwargs={"k": RETRIEVAL_TOP_K})
 
+                    answer_text = result["answer_text"]
+                    cited_pages = result["cited_pages"]
+                    retrieved_docs = result["retrieved_docs"]
+                    metrics = result["metrics"]
                     t_retrieval_start = time.perf_counter()
-                    retrieved_docs = retriever.invoke(user_question)
+                    # retrieved_docs = retriever.invoke(user_question)
                     metric_retrieval_s = round(
                         time.perf_counter() - t_retrieval_start, 4)
                     metric_chunks_retrieved = len(retrieved_docs)
 
-                    if not retrieved_docs:
-                        st.error("No relevant content found for this question.")
-                        st.stop()
+                    # if not retrieved_docs:
+                    #     st.error("No relevant content found for this question.")
+                    #     st.stop()
 
                 except Exception as e:
                     st.error("Error while retrieving relevant content.")
@@ -110,16 +119,16 @@ if st.button("Ask"):
             with st.spinner("Generating answer..."):
                 try:
                     t_llm_start = time.perf_counter()
-                    generation_result = generate_answer(
-                        client=client,
-                        model_name=model_gemini_flash,
-                        user_question=user_question,
-                        retrieved_docs=retrieved_docs,
-                    )
+
+                    # generation_result = generate_answer(
+                    #     client=client,
+                    #     model_name=model_gemini_flash,
+                    #     user_question=user_question,
+                    #     retrieved_docs=retrieved_docs,
+                    # )
                     metric_llm_s = round(
                         (time.perf_counter() - t_llm_start), 4)
-                    answer_text = generation_result["answer_text"]
-                    cited_pages = generation_result["cited_pages"]
+
                     metric_total_s = round((time.perf_counter() - t0), 4)
 
                 except Exception as e:
