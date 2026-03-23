@@ -1,5 +1,6 @@
 import sys
 
+
 def run_ui():
     import subprocess
     # subprocess.run(["streamlit", "run", "app/ui.py"])
@@ -17,7 +18,6 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--mode", choices=["ui", "ingestion"], required=True)
-    
 
     args = parser.parse_args()
 

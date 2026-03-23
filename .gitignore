@@ -207,7 +207,7 @@ marimo/_static/
 marimo/_lsp/
 __marimo__/
 
-# resarch files ignore
+# notebooks files ignore
 notebooks/
 
 
@@ -217,10 +217,11 @@ chroma/
 
 # Raw large files (optional)
 data/raw/
-
 data/*
-
-
 .DS_Store
 *.sqlite3
 *.chroma
+
+#dockerfile
+
+
