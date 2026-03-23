@@ -208,7 +208,7 @@ marimo/_lsp/
 __marimo__/
 
 # resarch files ignore
-zresearch_ignore/
+notebooks/
 
 
 # Vector database
