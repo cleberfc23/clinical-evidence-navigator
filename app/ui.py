@@ -1,5 +1,5 @@
 from core.observability import write_log, build_log_payload
-from app.generator import generate_answer, build_client
+from app.generator import build_client
 from core.settings import (
     DEFAULT_DOC,
     get_secrets,
