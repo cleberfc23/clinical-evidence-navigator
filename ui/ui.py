@@ -1,39 +1,41 @@
-from core.observability import write_log, build_log_payload
-from app.generator import build_client
-from core.settings import (
-    DEFAULT_DOC,
-    get_secrets,
-    validate_runtime_config,
-    DEBUG_MODE,
-    MAX_REQUESTS,
-    RETRIEVAL_TOP_K,
-)
 import uuid
 import time
 import streamlit as st
-import sys
-from pathlib import Path
-from core.rag_service import answer_question
+from service.rag_service import answer_question, answer_question_refactored
+from logs.observability import write_log, build_log_payload
+MAX_REQUESTS = 3
+DEBUG_MODE = True
 
-ROOT_DIR = Path(__file__).resolve().parent.parent
-if str(ROOT_DIR) not in sys.path:
-    sys.path.append(str(ROOT_DIR))
+# import sys
+# from pathlib import Path
+# from core.settings import (
+#     DEFAULT_DOC,
+#     get_secrets,
+#     validate_runtime_config,
+#     DEBUG_MODE,
+#     MAX_REQUESTS,
+#     RETRIEVAL_TOP_K,
+# )
+# from app.generator import build_client
+# ROOT_DIR = Path(__file__).resolve().parent.parent
+# if str(ROOT_DIR) not in sys.path:
+#     sys.path.append(str(ROOT_DIR))
 
 
 if "request_count" not in st.session_state:
     st.session_state.request_count = 0
 
-run_time_config_dict = get_secrets()
-missing_fields = validate_runtime_config(run_time_config_dict)
-model_gemini_flash = run_time_config_dict["model_name"]
-gemini_api_key = run_time_config_dict["api_key"]
-embedding_model = run_time_config_dict["embedding_model"]
+# run_time_config_dict = get_secrets()
+# missing_fields = validate_runtime_config(run_time_config_dict)
+# model_gemini_flash = run_time_config_dict["model_name"]
+# gemini_api_key = run_time_config_dict["api_key"]
+# embedding_model = run_time_config_dict["embedding_model"]
 
-if missing_fields:
-    st.error(
-        "Missing required configuration: " + ", ".join(missing_fields)
-    )
-    st.stop()
+# if missing_fields:
+#     st.error(
+#         "Missing required configuration: " + ", ".join(missing_fields)
+#     )
+#     st.stop()
 
 
 st.set_page_config(
@@ -47,7 +49,7 @@ st.caption("Fields covered: \n - Diabetes (Standards of Care 2026)")
 user_question = st.text_input(
     "Enter your question"
 )
-client = build_client(gemini_api_key)
+# client = build_client(gemini_api_key)
 results = st.container()
 if st.button("Ask"):
     if st.session_state.request_count >= MAX_REQUESTS:
@@ -70,13 +72,16 @@ if st.button("Ask"):
                 try:
                     t_index_start = time.perf_counter()
                     # vectorstore = load_vectorstore(embedding_model)
-                    result = answer_question(
-                        user_question=user_question,
-                        embedding_model=embedding_model,
-                        client=client,
-                        model_name=model_gemini_flash,
-                        top_k=RETRIEVAL_TOP_K,
-                    )
+
+                    # result = answer_question(
+                    #     user_question=user_question,
+                    #     embedding_model=embedding_model,
+                    #     client=client,
+                    #     model_name=model_gemini_flash,
+                    #     top_k=RETRIEVAL_TOP_K,
+                    # )
+                    result = answer_question_refactored(
+                        user_question=user_question)
                     metric_index_s = round(
                         time.perf_counter() - t_index_start, 4)
                     st.success("Vector store created successfully!")
@@ -94,6 +99,8 @@ if st.button("Ask"):
                     cited_pages = result["cited_pages"]
                     retrieved_docs = result["retrieved_docs"]
                     metrics = result["metrics"]
+                    top_k = result["top_k"]
+                    default_doc_id = result["doc_id"]
                     t_retrieval_start = time.perf_counter()
                     # retrieved_docs = retriever.invoke(user_question)
                     metric_retrieval_s = round(
@@ -157,12 +164,13 @@ if st.button("Ask"):
                     row3_col1.metric("Chunks retrieved",
                                      metric_chunks_retrieved)
 
+                   # ?!
                     log_payload = build_log_payload(
                         app_version="v0.1.0",
                         run_id=run_id,
-                        doc_id=DEFAULT_DOC["doc_id"],
+                        doc_id=default_doc_id,
                         query=user_question,
-                        retrieval_top_k=RETRIEVAL_TOP_K,
+                        retrieval_top_k=top_k,
                         end_to_end_s=metric_total_s,
                         indexing_s=metric_index_s,
                         retrieval_s=metric_retrieval_s,
@@ -172,7 +180,7 @@ if st.button("Ask"):
                         answer_text_by_lmm=answer_text,
                         cited_pages=cited_pages
                     )
-                    write_log(log_payload)
+                    write_log(log_payload)  # ?!
 
             else:
                 st.warning("No answer was returned")

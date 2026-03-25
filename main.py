@@ -3,8 +3,7 @@ import sys
 
 def run_ui():
     import subprocess
-    # subprocess.run(["streamlit", "run", "app/ui.py"])
-    subprocess.run([sys.executable, "-m", "streamlit", "run", "app/ui.py"])
+    subprocess.run([sys.executable, "-m", "streamlit", "run", "ui/ui.py"])
 
 
 def run_ingestion():
