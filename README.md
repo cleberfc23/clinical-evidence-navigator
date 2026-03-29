@@ -1,48 +1,53 @@
-# Clinical Evidence Navigator 
+# Clinical Evidence Navigator
+
 ![Status](https://img.shields.io/badge/status-active%20development-yellow?style=for-the-badge)
 
-
-Clinical Evidence Navigator is a domain-focused Retrieval-Augmented Generation (RAG) system for querying clinical guidelines and generating citation-backed answers.
-
-Designed to demonstrate transparent retrieval workflows, grounded LLM responses, and measurable AI system performance.
+RAG system for querying clinical guidelines with citation-backed, 
+hallucination-mitigated responses. Built with LangGraph, ChromaDB, and FastAPI.
 
 > ⚠️ Engineering and research project — not medical advice.
 
 ---
 
-## Key Features
+## Architecture
+```
+PDF Guidelines → Ingestion Pipeline → ChromaDB (bge-small-en-v1.5)
+                                           ↓
+                              LangGraph Inference Engine
+                              (retrieval → reranking → generation)
+                                           ↓
+                              FastAPI serving layer → Streamlit UI
+```
 
-- Evidence-grounded clinical question answering  
-- Citation-backed responses from medical guidelines  
-- Modular architecture (ingestion, core inference, serving)  
-- API-based access via FastAPI  
-- Runtime performance monitoring and latency tracking  
+---
 
+## Performance
+
+| Metric              | Before     | After   | Improvement |
+|---------------------|------------|---------|-------------|
+| End-to-end latency  | ~358s      | ~7.1s   | >98%        |
+| Retrieval latency   | tracked    |         |             |
+| Indexing time       | tracked    |         |             |
+| LLM inference       | tracked    |         |             |
 
 ---
 
 ## Tech Stack
 
-Python · LangChain · LangGraph · ChromaDB  
-HuggingFace Embeddings (bge-small-en-v1.5)  
-Google Gemini 2.5 Flash · FastAPI · Streamlit · Docker  
+Python · LangChain · LangGraph · ChromaDB · HuggingFace (bge-small-en-v1.5)  
+Google Gemini 2.5 Flash · FastAPI · Streamlit · Docker
 
 ---
 
-## System Metrics
-
-The system tracks execution performance across:
-
-- End-to-end latency  
-- Indexing time  
-- Retrieval latency  
-- LLM inference latency  
-
-Optimized end-to-end latency from ~358s to ~7.1s (>98% improvement).
+## Quick Start
+```bash
+git clone https://github.com/cleberfc23/clinical-evidence-navigator
+cd clinical-evidence-navigator
+docker compose up
+```
 
 ---
 
+## Author
 
-
-## Author 
-Cleber F. Carvalho
+[Cleber F. Carvalho](https://github.com/cleberfc23)
