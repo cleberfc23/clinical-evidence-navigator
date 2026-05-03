@@ -1,6 +1,6 @@
 # Clinical Evidence Navigator
 
-![Status](https://img.shields.io/badge/status-active%20development-yellow?style=for-the-badge)
+![Status](https://img.shields.io/badge/development-paused-607d8b?style=for-the-badge)
 
 RAG system for querying clinical guidelines with citation-backed, 
 hallucination-mitigated responses. Built with LangGraph, ChromaDB, and FastAPI.
